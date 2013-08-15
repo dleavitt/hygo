@@ -55,6 +55,13 @@ func main() {
 				p := Project{IO: ConsoleIO{}}
 				p.AddGithubHipchatHook()
 			},
+		}, {
+			Name:  "create_repo",
+			Usage: "Create a new Github Repo",
+			Action: func(c *cli.Context) {
+				p := Project{IO: ConsoleIO{}}
+				p.CreateGithubRepo()
+			},
 		},
 	}
 

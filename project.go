@@ -18,6 +18,7 @@ type Project struct {
 	GithubClient  *github.Client
 	HipchatRooms  []hipchat.Room
 	GithubRepos   []github.Repository
+	HipchatHook   *github.Hook
 }
 
 func (p *Project) ReadConfig() {
@@ -107,6 +108,15 @@ func (p *Project) AddGithubHipchatHook() {
 	p.PromptForGithubRepo()
 	p.PromptForHipchatRoom()
 	p.DoAddGithubHipchatHook()
+	p.TestGithubHipchatHook()
+}
+
+func (p *Project) CreateGithubRepo() {
+	p.ReadConfig()
+	p.InitGithubClient()
+	p.PromptForGithubOrg()
+	p.PromptForGithubRepo()
+	p.DoCreateGithubRepo()
 }
 
 func (p *Project) DoAddGithubHipchatHook() {
@@ -119,10 +129,32 @@ func (p *Project) DoAddGithubHipchatHook() {
 		Name:   "hipchat",
 		Config: hookConf,
 	}
-	_, _, err := p.GithubClient.Repositories.CreateHook(p.GithubOrg, p.GithubRepo, hook)
+	hook, _, err := p.GithubClient.Repositories.CreateHook(p.GithubOrg, p.GithubRepo, hook)
 	if err != nil {
 		p.IO.say(err.Error())
 		os.Exit(1)
 	}
+	p.HipchatHook = hook
 	p.IO.say("Hook added!")
+}
+
+func (p *Project) TestGithubHipchatHook() {
+	_, err := p.GithubClient.Repositories.TestHook(p.GithubOrg, p.GithubRepo, p.HipchatHook.ID)
+	if err != nil {
+		p.IO.say(err.Error())
+		os.Exit(1)
+	}
+	p.IO.say("Test hook sent!")
+}
+
+func (p *Project) DoCreateGithubRepo() {
+	// TODO: no way to create private repos
+	repo := &github.Repository{Name: p.GithubRepo}
+
+	_, _, err := p.GithubClient.Repositories.Create(p.GithubOrg, repo)
+	if err != nil {
+		p.IO.say(err.Error())
+		os.Exit(1)
+	}
+	p.IO.say("Repo created!")
 }
