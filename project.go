@@ -108,7 +108,17 @@ func (p *Project) AddGithubHipchatHook() {
 	p.PromptForGithubRepo()
 	p.PromptForHipchatRoom()
 	p.DoAddGithubHipchatHook()
-	p.TestGithubHipchatHook()
+	p.DoTestGithubHipchatHook()
+}
+
+func (p *Project) TestGithubHipchatHook() {
+	p.ReadConfig()
+	p.InitHipchatClient()
+	p.InitGithubClient()
+	p.PromptForGithubOrg()
+	p.PromptForGithubRepo()
+	p.PromptForHipchatRoom()
+	p.DoTestGithubHipchatHook()
 }
 
 func (p *Project) CreateGithubRepo() {
@@ -138,7 +148,7 @@ func (p *Project) DoAddGithubHipchatHook() {
 	p.IO.say("Hook added!")
 }
 
-func (p *Project) TestGithubHipchatHook() {
+func (p *Project) DoTestGithubHipchatHook() {
 	_, err := p.GithubClient.Repositories.TestHook(p.GithubOrg, p.GithubRepo, p.HipchatHook.ID)
 	if err != nil {
 		p.IO.say(err.Error())
@@ -148,8 +158,8 @@ func (p *Project) TestGithubHipchatHook() {
 }
 
 func (p *Project) DoCreateGithubRepo() {
-	// TODO: no way to create private repos
-	repo := &github.Repository{Name: p.GithubRepo}
+	privacy := true
+	repo := &github.Repository{Name: p.GithubRepo, Private: &privacy}
 
 	_, _, err := p.GithubClient.Repositories.Create(p.GithubOrg, repo)
 	if err != nil {
